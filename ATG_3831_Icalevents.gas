@@ -1,0 +1,148 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Coded by: CHANDANA
+'Project Start Date: 8/10/2011
+V.Local.iCt.Declare(Long)
+V.Local.iTime.Declare(Long)
+V.Local.sTimeZone.Declare(String)
+V.Local.sFileName.Declare(String)
+V.Local.sTitle.Declare(String)
+V.Local.sDesc.Declare(String)
+V.Local.sYear.Declare(String)
+V.Local.sMonth.Declare(String)
+V.Local.sDay.Declare(String)
+V.Local.sSTm.Declare(String)
+V.Local.sETm.Declare(String)
+V.Local.sHour.Declare(String)
+V.Local.sMin.Declare(String)
+V.Local.sMeri.Declare(String)
+V.Local.sStart.Declare(String)
+V.Local.sEnd.Declare(String)
+V.Local.IAllDay.Declare(Long)
+V.Local.iSingleDay.Declare(Long)
+V.Local.sAttendees.Declare(String)
+V.Local.sAttendeesMail.Declare(String)
+V.Local.sAttendeesNames.Declare(String)
+V.Local.sRecipients.Declare(String)
+V.Local.iUserID.Declare(Long)
+V.Local.sAttach.Declare(String)
+V.Local.sSender.Declare(String)
+V.Local.sMsg.Declare(String)
+V.Local.sSenderEmail.Declare(String)
+
+'Set TimeZone
+F.Intrinsic.Date.UTCoffset(True,V.Local.iTime)
+F.Intrinsic.Control.SelectCase(V.Local.iTime)
+	F.Intrinsic.Control.Case(-5)
+		V.Local.sTimeZone.Set("EASTERN")
+	F.Intrinsic.Control.Case(-6)
+		V.Local.sTimeZone.Set("CENTRAL")
+	F.Intrinsic.Control.Case(-7)
+		V.Local.sTimeZone.Set("MOUNTAIN")
+	F.Intrinsic.Control.Case(-8)
+		V.Local.sTimeZone.Set("PACIFIC")
+	F.Intrinsic.Control.CaseElse
+		F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndSelect
+
+'edit by TRT, use of new CRM.NET hook 30662=42962
+F.Intrinsic.Control.If(V.Caller.Hook,=,42962)
+	'Set the Title/Summary
+	V.Local.sTitle.Set(V.Passed.CRM-txteventTitle)
+	'Set the File Name- remove the characters that files names dont allow.
+	F.Intrinsic.File.MakeFilenameFriendly(v.Local.sTitle,v.Local.sTitle)
+	F.Intrinsic.String.Concat(V.System.Temp,"\",V.Local.sTitle,".ics",V.Local.sFileName)
+'	F.Intrinsic.String.Concat(V.System.Temp,"\Test.ics",V.Local.sFileName)
+	'Set Description
+	V.Local.sDesc.Set(V.Passed.CRM-txtEventDesc)
+	'Set the Start Date
+	V.Local.sStart.Set(V.Passed.CRM-dtpStart)
+	F.Intrinsic.String.Left(V.Local.sStart,4,V.Local.sYear)
+	F.Intrinsic.String.Mid(V.Local.sStart,5,2,V.Local.sMonth)
+	F.Intrinsic.String.Right(V.Local.sStart,2,V.Local.sDay)
+	V.Local.IAllDay.Set(V.Passed.CRM-chkAll)
+	F.Intrinsic.Control.If(V.Local.IAllDay,=,1)
+		V.Local.sHour.Set("12")
+		V.Local.sMin.Set("01")
+	F.Intrinsic.Control.Else
+		V.Local.sSTm.Set(V.Passed.CRM-cboSTm)
+		F.Intrinsic.String.Split(V.Local.sSTm," ",V.Local.sSTm)
+		V.Local.sMeri.Set(V.Local.sSTm(1))
+		F.Intrinsic.String.Split(V.Local.sSTm(0),":",V.Local.sSTm)
+		V.Local.sHour.Set(V.Local.sSTm(0))
+		V.Local.sMin.Set(V.Local.sSTm(1))
+		F.Intrinsic.Control.If(V.Local.sMeri,=,"PM")
+			F.Intrinsic.Math.Add(V.Local.sHour,12,V.Local.sHour)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Date.DateTimeSerial(V.Local.sYear,V.Local.sMonth,V.Local.sDay,V.Local.sHour,V.Local.sMin,1,V.local.sStart)
+
+	'Set the End-Date
+	V.Local.iSingleDay.Set(V.Passed.CRM-chkSingle)
+	F.Intrinsic.Control.If(V.Local.iSingleDay,=,0)
+		V.Local.sEnd.Set(V.Passed.CRM-dtpEnd)
+		F.Intrinsic.String.Left(V.Local.sEnd,4,V.Local.sYear)
+		F.Intrinsic.String.Mid(V.Local.sEnd,5,2,V.Local.sMonth)
+		F.Intrinsic.String.Right(V.Local.sEnd,2,V.Local.sDay)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.If(V.Local.IAllDay,=,1)
+		V.Local.sHour.Set("23")
+		V.Local.sMin.Set("59")
+	F.Intrinsic.Control.Else
+		V.Local.sETm.Set(V.Passed.CRM-cboETm)
+		F.Intrinsic.String.Split(V.Local.sETm," ",V.Local.sETm)
+		V.Local.sMeri.Set(V.Local.sETm(1))
+		F.Intrinsic.String.Split(V.Local.sETm(0),":",V.Local.sETm)
+		V.Local.sHour.Set(V.Local.sETm(0))
+		V.Local.sMin.Set(V.Local.sETm(1))
+		F.Intrinsic.Control.If(V.Local.sMeri,=,"PM")
+			F.Intrinsic.Math.Add(V.Local.sHour,12,V.Local.sHour)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Date.DateTimeSerial(V.Local.sYear,V.Local.sMonth,V.Local.sDay,V.Local.sHour,V.Local.sMin,1,V.local.sEnd)
+	'Set Attendees list
+	V.Local.sAttendeesNames.Set(V.Passed.CRM-lstRcpt)
+	F.Intrinsic.String.Split(V.Local.sAttendeesNames,"|~|",V.Local.sAttendeesNames)
+	F.Intrinsic.Control.For(V.Local.iCt,0,V.Local.sAttendeesNames.UBound,1)
+		F.Global.Security.GetUserEmail(V.Local.sAttendeesNames(v.Local.iCt),V.Local.sAttendeesMail)
+		F.Intrinsic.Control.If(V.Local.sAttendeesMail,<>,"")
+			F.Intrinsic.Control.If(V.Local.sAttendees,=,"")
+				V.Local.sAttendees.Set(V.Local.sAttendeesMail)
+				F.Intrinsic.String.Concat(V.Local.sAttendeesNames(v.Local.iCt),"*!*",V.Local.sAttendeesMail,V.Local.sRecipients)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.String.Concat(V.Local.sAttendees,"*!*",V.Local.sAttendeesMail,V.Local.sAttendees)
+				F.Intrinsic.String.Concat(V.Local.sRecipients,"@!@",V.Local.sAttendeesNames(v.Local.iCt),"*!*",V.Local.sAttendeesMail,V.Local.sRecipients)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(V.Local.iCt)
+	F.Automation.Groupware.CreateiCalEvent(V.Local.sFileName,V.Local.sTitle,V.Local.sDesc,V.Local.sStart,V.Local.sEnd,V.Local.sTimeZone,V.Local.sAttendees)
+F.Intrinsic.Control.EndIf
+
+F.Global.Security.GetUserEmail(V.Caller.User,V.Caller.CompanyCode,V.Local.sSenderEmail)
+F.Global.Security.GetUserID(V.Caller.User,V.Caller.CompanyCode,V.Local.iUserID)
+F.Intrinsic.String.Concat(V.local.sSenderEmail,"*!*",V.Caller.User,V.Local.sSender)
+F.Intrinsic.String.Concat(V.Local.sTitle,".ics*!*",V.system.Temp,V.Local.sAttach)
+'F.Intrinsic.UI.Msgbox(V.Local.sAttach)
+
+F.Intrinsic.Control.If(V.Local.sSenderEmail,=,"")
+	F.Intrinsic.String.Concat("Event "",V.Local.sTitle,"" can not be Sent",V.Ambient.NewLine,"Senders Email ID could not be found",V.Local.sMsg)
+	F.Intrinsic.UI.Msgbox(V.Local.sMsg,"CRM Events")
+F.Intrinsic.Control.Else
+	F.Global.Messaging.QueueMessage(V.Caller.CompanyCode,V.Local.iUserID,V.Caller.Caller,V.Local.sTitle,V.Local.sSender,V.Local.sRecipients,V.Local.sDesc,-1,V.Local.sSenderEmail,False,"","","","","","","",V.Local.sAttach,True)
+F.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.Comments.Start
+${$0$}$ATG_3831_Icalevents$}$RKing$}$4/25/2016
+${$1$}$$}$$}$0$}$42962$}$CRM.NET-POST-TO-ALT$}$4/25/2016 8:45:04 AM$}$(Program: Global_Shop_CRM.exe; Screen: )
+
+Program.Sub.Comments.End
+
